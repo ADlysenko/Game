@@ -11,13 +11,22 @@ pygame.display.set_caption("simple game")
 bg = pygame.image.load("bg2.png")
 fly = pygame.image.load("air2.png")
 ene = pygame.image.load("air3.png")
+blow = [pygame.image.load("blow1.png"), pygame.image.load("blow2.png"), pygame.image.load("blow3.png"),
+        pygame.image.load("blow4.png"), pygame.image.load("blow5.png"), pygame.image.load("blow6.png")]
+box = [pygame.image.load("box.png"), pygame.image.load("box2.png"), pygame.image.load("box3.png"),
+       pygame.image.load("box4.png")]
 clock = pygame.time.Clock
 
 count = z = 0
 a = 0
-score = 0
+score, kill = 0, 0
+right = False
+left = False
 i = 0
 n = 0
+countbox = 0
+countdamage = 0
+
 
 class shoot():
     def __init__(self, x, y, radius, color, vel):
@@ -29,6 +38,46 @@ class shoot():
 
     def draw(self, win):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+
+
+class box1():
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.vel = 2
+        self.color = (0, 0, 255)
+        self.radius = 10
+        self.n = None
+        self.up = 0
+        self.hitbox = (self.x, self.y, self.width, self.height)
+
+    def draw(self, win):
+        win.blit(box[self.n], (self.x, self.y))
+        self.hitbox = (self.x, self.y, self.width, self.height)
+        # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+
+    def touch(self):
+        global countbox
+        global countdamage
+        print("YEAH")
+        if self.n == 0:
+            for enem in enemyspot:
+                enem.health -= enem.health
+        if self.n == 1:
+            pass
+        if self.n == 2:
+            if plane.damage < 50:
+                plane.damageout += 5
+                countdamage = 0
+        if self.n == 3:
+            if plane.health < 70:
+                plane.health += 30
+            else:
+                plane.health += (100 - plane.health)
+
+
 
 class player():
     def __init__(self, x, y, width, height):
@@ -42,11 +91,25 @@ class player():
         self.health = 100
         self.damage = 5
         self.damageout = 5
+        self.xbox = 580
 
     def draw(self, win):
+        global countbox
+        global countdamage
+        if self.damageout > 5:
+            if countdamage < 300:
+                countdamage += 1
+                font = pygame.font.SysFont("comicsans", 15, True)
+                text = font.render(("+damage"), 1, (0, 191, 255))
+                win.blit(text, (10, self.xbox - 10))
+                pygame.draw.rect(win, (0, 191, 255), (10, self.xbox, 50, 10), 1)
+                pygame.draw.rect(win, (0, 191, 255), (10, self.xbox, (300 - countdamage) // 6, 10))
+            else:
+                countdamage = 0
+                plane.damageout = 5
         win.blit(fly, (self.x, self.y))
         self.hitbox = (self.x, self.y, self.width, self.height)
-        pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+        # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
         self.count += 1
         if self.count % 20 == 0:
             bullets1.append(
@@ -55,9 +118,14 @@ class player():
             self.count = 0
         win.blit(fly, (self.x, self.y))
         pygame.draw.rect(win, (255, 0, 0), (self.hitbox[0], self.hitbox[1] - 7, 40, 5))
-        pygame.draw.rect(win, (0, 100, 0), (self.hitbox[0], self.hitbox[1] - 7, self.health//2.5, 5))
+        pygame.draw.rect(win, (0, 100, 0), (self.hitbox[0], self.hitbox[1] - 7, self.health // 2.5, 5))
 
     def hitme(self):
+        print("ohh")
+        if self.health > 5:
+            self.health -= self.damage
+        else:
+            pass
         print("ohh")
 
 
@@ -81,7 +149,7 @@ class enemy(object):
         if self.visible:
             win.blit(ene, (self.x, self.y))
             self.hitbox = (self.x, self.y, self.width, self.height)
-            pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+            # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
             pygame.draw.rect(win, (255, 0, 0), (self.hitbox[0], self.hitbox[1] - 7, 40, 5))
             pygame.draw.rect(win, (0, 100, 0), (self.hitbox[0], self.hitbox[1] - 7, 40 - (4 * (10 - self.health)), 5))
             self.count += 1
@@ -92,9 +160,13 @@ class enemy(object):
                 self.count = 0
 
     def hit(self):
-        print("hit")
+        if plane.damageout <= self.health:
+            self.health -= plane.damageout
+        else:
+            self.health -= self.health
 
     def move(self):
+        global kill
         if self.r == self.x:
             self.r = random.randrange(6, 352, self.vel)
         if self.r >= self.x:
@@ -108,7 +180,22 @@ class enemy(object):
         else:
             self.y -= self.vel
         if self.health <= 0:
+            kill += 1
+            blows.append(bloww(self.x, self.y))
             enemyspot.pop(enemyspot.index(self))
+
+
+class bloww():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def draw(self, win):
+        self.move()
+        win.blit(blow[(i // 4)], (self.x, self.y))
+
+    def move(self):
+        self.y += 3
 
 
 def drawWindow():
@@ -121,37 +208,63 @@ def drawWindow():
         win.blit(bg, (0, rel_z))
     z += 2
     plane.draw(win)
+    for blo in blows:
+        blo.draw(win)
+        i += 1
+        if i == 24:
+            blows.pop(blows.index((blo)))
+            i = 0
+    for boxs in boxspot:
+        boxs.draw(win)
     for enem in enemyspot:
         enem.draw(win)
     for bullet in bullets1:
         bullet.draw(win)
     for bullet in bullets2:
         bullet.draw(win)
+    if countdamage < 40 and countdamage != 0:
+        text = font.render(("+damage"), 1, (255, 255, 255))
+        win.blit(text, (plane.hitbox[0] - 14, plane.hitbox[1] + 55))
     text = font.render("Score: " + str(int(score)), 1, (255, 255, 255))
     win.blit(text, (315, 5))
+    text1 = font.render("Kills: " + str(int(kill)), 1, (255, 255, 255))
+    win.blit(text1, (5, 5))
     pygame.display.update()
 
 
 plane = player(180, 450, 38, 38)
 enemyspot = []
+boxspot = []
 bullets1 = []
 bullets2 = []
-
-
-
+blows = []
 
 run = True
 while run:
     clock().tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
+            run = False
         if event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 pygame.quit()
     if len(enemyspot) < 5:
         r3 = random.randrange(100, 200, 20)
         enemyspot.append(enemy(r3, -200, 40, 40, 450))
+    if score > 10:
+        ran = random.randrange(0, 1000, 20)  # 7000
+        if ran == 20:
+            r4 = random.randrange(0, 400, 20)
+            r5 = random.randrange(-100, -200, -20)
+            boxspot.append(box1(r4, r5, 24, 24))
+            for boxs in boxspot:
+                if boxs.n == None:
+                    boxs.n = random.randrange(1, 4, 1)
+    for boxs in boxspot:
+        if boxs.y < 600:
+            boxs.y += boxs.vel
+        else:
+            boxspot.pop(boxspot.index(boxs))
     for bullet in bullets2:
         if bullet.y < 600 and bullet.y > 0:
             bullet.y -= bullet.vel
