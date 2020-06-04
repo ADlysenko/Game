@@ -11,13 +11,18 @@ pygame.display.set_caption("simple game")
 bg = pygame.image.load("bg2.png")
 fly = pygame.image.load("air2.png")
 ene = pygame.image.load("air3.png")
+blow = [pygame.image.load("blow1.png"), pygame.image.load("blow2.png"), pygame.image.load("blow3.png"),
+        pygame.image.load("blow4.png"), pygame.image.load("blow5.png"), pygame.image.load("blow6.png")]
 clock = pygame.time.Clock
 
 count = z = 0
 a = 0
-score = 0
+score, kill = 0, 0
+right = False
+left = False
 i = 0
 n = 0
+
 
 class shoot():
     def __init__(self, x, y, radius, color, vel):
@@ -29,6 +34,7 @@ class shoot():
 
     def draw(self, win):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
+
 
 class player():
     def __init__(self, x, y, width, height):
@@ -46,7 +52,7 @@ class player():
     def draw(self, win):
         win.blit(fly, (self.x, self.y))
         self.hitbox = (self.x, self.y, self.width, self.height)
-        pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+        # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
         self.count += 1
         if self.count % 20 == 0:
             bullets1.append(
@@ -55,9 +61,14 @@ class player():
             self.count = 0
         win.blit(fly, (self.x, self.y))
         pygame.draw.rect(win, (255, 0, 0), (self.hitbox[0], self.hitbox[1] - 7, 40, 5))
-        pygame.draw.rect(win, (0, 100, 0), (self.hitbox[0], self.hitbox[1] - 7, self.health//2.5, 5))
+        pygame.draw.rect(win, (0, 100, 0), (self.hitbox[0], self.hitbox[1] - 7, self.health // 2.5, 5))
 
     def hitme(self):
+        print("ohh")
+        if self.health > 5:
+            self.health -= self.damage
+        else:
+            pass
         print("ohh")
 
 
@@ -81,7 +92,7 @@ class enemy(object):
         if self.visible:
             win.blit(ene, (self.x, self.y))
             self.hitbox = (self.x, self.y, self.width, self.height)
-            pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+            # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
             pygame.draw.rect(win, (255, 0, 0), (self.hitbox[0], self.hitbox[1] - 7, 40, 5))
             pygame.draw.rect(win, (0, 100, 0), (self.hitbox[0], self.hitbox[1] - 7, 40 - (4 * (10 - self.health)), 5))
             self.count += 1
@@ -92,9 +103,13 @@ class enemy(object):
                 self.count = 0
 
     def hit(self):
-        print("hit")
+        if plane.damageout <= self.health:
+            self.health -= plane.damageout
+        else:
+            self.health -= self.health
 
     def move(self):
+        global kill
         if self.r == self.x:
             self.r = random.randrange(6, 352, self.vel)
         if self.r >= self.x:
@@ -108,7 +123,22 @@ class enemy(object):
         else:
             self.y -= self.vel
         if self.health <= 0:
+            kill += 1
+            blows.append(bloww(self.x, self.y))
             enemyspot.pop(enemyspot.index(self))
+
+
+class bloww():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def draw(self, win):
+        self.move()
+        win.blit(blow[(i // 4)], (self.x, self.y))
+
+    def move(self):
+        self.y += 3
 
 
 def drawWindow():
@@ -121,6 +151,12 @@ def drawWindow():
         win.blit(bg, (0, rel_z))
     z += 2
     plane.draw(win)
+    for blo in blows:
+        blo.draw(win)
+        i += 1
+        if i == 24:
+            blows.pop(blows.index((blo)))
+            i = 0
     for enem in enemyspot:
         enem.draw(win)
     for bullet in bullets1:
@@ -129,6 +165,8 @@ def drawWindow():
         bullet.draw(win)
     text = font.render("Score: " + str(int(score)), 1, (255, 255, 255))
     win.blit(text, (315, 5))
+    text1 = font.render("Kills: " + str(int(kill)), 1, (255, 255, 255))
+    win.blit(text1, (5, 5))
     pygame.display.update()
 
 
@@ -136,16 +174,14 @@ plane = player(180, 450, 38, 38)
 enemyspot = []
 bullets1 = []
 bullets2 = []
-
-
-
+blows = []
 
 run = True
 while run:
     clock().tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
+            run = False
         if event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 pygame.quit()
