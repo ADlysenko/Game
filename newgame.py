@@ -15,6 +15,10 @@ blow = [pygame.image.load("blow1.png"), pygame.image.load("blow2.png"), pygame.i
         pygame.image.load("blow4.png"), pygame.image.load("blow5.png"), pygame.image.load("blow6.png")]
 box = [pygame.image.load("box.png"), pygame.image.load("box2.png"), pygame.image.load("box3.png"),
        pygame.image.load("box4.png")]
+pause1 = pygame.image.load("pause2.png")
+pausebutton = pygame.image.load("pausebutton.png")
+menubut = pygame.image.load("menubut.png")
+resumebut = pygame.image.load("resumebut.png")
 clock = pygame.time.Clock
 
 count = z = 0
@@ -22,6 +26,7 @@ a = 0
 score, kill = 0, 0
 right = False
 left = False
+run = True
 i = 0
 n = 0
 countbox = 0
@@ -293,80 +298,135 @@ bullets1 = []
 bullets2 = []
 shield = []
 blows = []
+button_pause = pygame.draw.rect(win, (255, 0, 0), (180, 5, 30, 30))
 
-run = True
-while run:
-    clock().tick(60)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-        if event.type == KEYDOWN:
-            if event.key == K_ESCAPE:
-                pygame.quit()
-    if plane.y > 510 and score < 5:
-        plane.y -= 2 * plane.vel
-    if score > 10:
-        if len(enemyspot) < 5:
-            r3 = random.randrange(100, 200, 20)
-            enemyspot.append(enemy(r3, -200, 40, 40, 450))
-    if score > 10:
-        ran = random.randrange(0, 1000, 20)  # 7000
-        if ran == 20:
-            r4 = random.randrange(0, 400, 20)
-            r5 = random.randrange(-100, -200, -20)
-            boxspot.append(box1(r4, r5, 24, 24))
-            for boxs in boxspot:
-                if boxs.n == None:
-                    boxs.n = random.randrange(0, 4, 1)
-    for boxs in boxspot:
-        if boxs.y < 600:
-            boxs.y += boxs.vel
-        else:
-            boxspot.pop(boxspot.index(boxs))
-        if boxs.hitbox[0] + boxs.hitbox[2] > plane.hitbox[0] and boxs.hitbox[0] < plane.hitbox[0] + plane.hitbox[2]:
-            if boxs.hitbox[1] < plane.hitbox[1] + plane.hitbox[3] and boxs.hitbox[1] + boxs.hitbox[3] > \
-                    plane.hitbox[1]:
-                boxs.touch()
+
+def pause():
+    global click
+    global button_pause
+    global run
+    paused = True
+    button_exit = pygame.draw.rect(win, (255, 0, 0), (140, 290, 120, 40))
+    button_resume = pygame.draw.rect(win, (255, 0, 0), (140, 240, 120, 40))
+    win.blit(pausebutton, (100, 210))
+    win.blit(resumebut, (140, 240))
+    font = pygame.font.SysFont("comicsans", 20, True)
+    text = font.render(("PAUSE"), 1, (255, 255, 255))
+    win.blit(text, (175, 220))
+    win.blit(menubut, (140, 290))
+    while paused:
+        click = False
+        # button_e = pygame.draw.rect(win, (255, 0, 0), (100, 210, 200, 150))
+        mousex, mousey = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                paused = False
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+        if button_resume.collidepoint((mousex, mousey)):
+            if click:
+                paused = False
+        elif button_exit.collidepoint((mousex, mousey)):
+            if click:
+                pass
+        pygame.display.update()
+        clock().tick(60)
+
+def game():
+    global button_pause
+    global score
+    global right
+    global left
+    global n
+    global click
+    global run
+    while run:
+        clock().tick(60)
+        click = False
+        if plane.y > 510 and score < 5:
+            plane.y -= 2 * plane.vel
+        if score > 1000:
+            if len(enemyspot) < 5:
+                r3 = random.randrange(100, 200, 20)
+                enemyspot.append(enemy(r3, -200, 40, 40, 450))
+        if score > 10:
+            ran = random.randrange(0, 1000, 20)  # 7000
+            if ran == 20:
+                r4 = random.randrange(0, 400, 20)
+                r5 = random.randrange(-100, -200, -20)
+                boxspot.append(box1(r4, r5, 24, 24))
+                for box in boxspot:
+                    if box.n == None:
+                        box.n = random.randrange(0, 4, 1)  # 0,2,1
+        for bullet in bullets1:
+            if bullet.y < 600 and bullet.y > 0:
+                bullet.y -= bullet.vel
+            elif len(bullets1) > 1:
+                bullets1.pop(bullets1.index(bullet))
+            for enem in enemyspot:
+                if bullet.x + bullet.radius > enem.hitbox[0] and bullet.x - bullet.radius < enem.hitbox[0] + \
+                        enem.hitbox[2]:
+                    if bullet.y - bullet.radius < enem.hitbox[1] + enem.hitbox[3] and bullet.y + bullet.radius > \
+                            enem.hitbox[1]:
+                        enem.hit()
+                        if bullet in bullets1:
+                            bullets1.pop(bullets1.index(bullet))
+        for boxs in boxspot:
+            if boxs.y < 600:
+                boxs.y += boxs.vel
+            else:
                 boxspot.pop(boxspot.index(boxs))
-    for bullet in bullets2:
-        if bullet.y < 600 and bullet.y > 0:
-            bullet.y -= bullet.vel
-        elif len(bullets2) > 1:
-            bullets2.pop(bullets2.index(bullet))
-        if bullet.x + bullet.radius > plane.hitbox[0] and bullet.x - bullet.radius < plane.hitbox[0] + plane.hitbox[
-            2]:
-            if bullet.y - bullet.radius < plane.hitbox[1] + plane.hitbox[3] and bullet.y + bullet.radius > \
-                    plane.hitbox[1]:
-                plane.hitme()
+            if boxs.hitbox[0] + boxs.hitbox[2] > plane.hitbox[0] and boxs.hitbox[0] < plane.hitbox[0] + plane.hitbox[2]:
+                if boxs.hitbox[1] < plane.hitbox[1] + plane.hitbox[3] and boxs.hitbox[1] + boxs.hitbox[3] > \
+                        plane.hitbox[1]:
+                    boxs.touch()
+                    boxspot.pop(boxspot.index(boxs))
+        for bullet in bullets2:
+            if bullet.y < 600 and bullet.y > 0:
+                bullet.y -= bullet.vel
+            elif len(bullets2) > 1:
                 bullets2.pop(bullets2.index(bullet))
-    for bullet in bullets1:
-        if bullet.y < 600 and bullet.y > 0:
-            bullet.y -= bullet.vel
-        elif len(bullets1) > 1:
-            bullets1.pop(bullets1.index(bullet))
-        for enem in enemyspot:
-            if bullet.x + bullet.radius > enem.hitbox[0] and bullet.x - bullet.radius < enem.hitbox[0] + \
-                    enem.hitbox[2]:
-                if bullet.y - bullet.radius < enem.hitbox[1] + enem.hitbox[3] and bullet.y + bullet.radius > \
-                        enem.hitbox[1]:
-                    enem.hit()
-                    if bullet in bullets1:
-                        bullets1.pop(bullets1.index(bullet))
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and plane.x > 5:
-        plane.x -= plane.vel
-        right = False
-        left = True
-    elif keys[pygame.K_RIGHT] and plane.x < 355:
-        plane.x += plane.vel
-        right = True
-        left = False
-    else:
-        right = False
-        left = False
-    if keys[pygame.K_UP] and plane.y > 300:
-        plane.y -= plane.vel
-    if keys[pygame.K_DOWN] and plane.y < 525:
-        plane.y += plane.vel
-    score += 0.1
-    drawWindow()
+            if bullet.x + bullet.radius > plane.hitbox[0] and bullet.x - bullet.radius < plane.hitbox[0] + plane.hitbox[
+                2]:
+                if bullet.y - bullet.radius < plane.hitbox[1] + plane.hitbox[3] and bullet.y + bullet.radius > \
+                        plane.hitbox[1]:
+                    plane.hitme()
+                    bullets2.pop(bullets2.index(bullet))
+        mousex, mousey = pygame.mouse.get_pos()
+        keys = pygame.key.get_pressed()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    pause()
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+        if keys[pygame.K_LEFT] and plane.x > 5:
+            plane.x -= plane.vel
+            right = False
+            left = True
+        elif keys[pygame.K_RIGHT] and plane.x < 355:
+            plane.x += plane.vel
+            right = True
+            left = False
+        else:
+            right = False
+            left = False
+        if keys[pygame.K_UP] and plane.y > 300:
+            plane.y -= plane.vel
+        if keys[pygame.K_DOWN] and plane.y < 525:
+            plane.y += plane.vel
+        if button_pause.collidepoint((mousex, mousey)):
+            if click:
+                pause()
+        score += 0.1
+        if run:
+            drawWindow()
+
+
+game()
+pygame.quit()
