@@ -24,14 +24,21 @@ gif = pygame.image.load("mainmenu1.png")
 box = [pygame.image.load("box.png "), pygame.image.load("box2.png"), pygame.image.load("box3.png"),
        pygame.image.load("box4.png")]
 mainmenu = pygame.image.load("mainmenu2.png")
-startgame1 = pygame.image.load("starttt.png")
-achiev = pygame.image.load("achiev.png")
-quit1 = pygame.image.load("quit.png")
+startgame1 = pygame.image.load("start1.png")
+achiev = pygame.image.load("change1.png")
+quit1 = pygame.image.load("quit1.png")
 pause1 = pygame.image.load("pause2.png")
 pausebutton = pygame.image.load("pausebutton.png")
-menubut = pygame.image.load("menubut.png")
-resumebut = pygame.image.load("resumebut.png")
+menubut = pygame.image.load("menubut1.png")
+resumebut = pygame.image.load("resumebut1.png")
+tryagain = pygame.image.load("tryagain.png")
 ok = pygame.image.load("ok.png")
+explosion = pygame.mixer.Sound("Explosion5.wav")
+bulsound = pygame.mixer.Sound("Laser_Shoot78.wav")
+power = pygame.mixer.Sound("Powerup19.wav")
+hurt = pygame.mixer.Sound("Hit_Hurt63.wav")
+shieldsound = pygame.mixer.Sound("Powerup22.wav")
+healthsound = pygame.mixer.Sound("Powerup49.wav")
 clock = pygame.time.Clock
 
 count = a = z = score = countdamage = countbox = kill = n = timeblow = i2 = iboss = i = 0
@@ -43,7 +50,6 @@ run = True
 plushealth = False
 pygame.mixer.music.set_volume(vol)
 nick = "Player"
-
 
 class shoot():
     def __init__(self, x, y, radius, color, vel):
@@ -98,15 +104,18 @@ class box1():
             for enem in enemyspot:
                 enem.health -= enem.health
         if self.n == 1:
+            shieldsound.play()
             countbox = 0
             plane.damage = 0
             if len(shield) == 0:
                 shield.append(shield1(self.x, self.y, 30, (0, 191, 255), 2))
         if self.n == 2:
+            power.play()
             if plane.damage < 50:
                 plane.damageout += 5
                 countdamage = 0
         if self.n == 3:
+            healthsound.play()
             plushealth = True
             if plane.health < 70:
                 hel = plane.health
@@ -166,6 +175,7 @@ class player():
         # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
         self.count += 1
         if self.count == 20:
+            bulsound.play()
             bullets1.append(
                 shoot((round(self.x + self.width // 2)), round((self.y + self.height // 2) - 25), 3,
                       (0, 255, 0), 20))
@@ -264,6 +274,7 @@ class enemy(object):
         if self.health <= 0:
             kill += 1
             blows.append(bloww(self.x, self.y))
+            explosion.play()
             if self in enemyspot:
                 enemyspot.pop(enemyspot.index(self))
 
@@ -434,10 +445,10 @@ def drawWindow():
         if shi.exist == False:
             shield.pop(shield.index(shi))
     if plushealth == True:
-        if plane.health < hel + 30:
-            plane.health += 1
-        else:
-            plushealth = False
+            if plane.health < hel + 30:
+                plane.health += 1
+            else:
+                plushealth = False
     if countdamage < 40 and countdamage != 0:
         text = font.render(("+damage"), 1, (255, 255, 255))
         win.blit(text, (plane.hitbox[0] - 14, plane.hitbox[1] - 25))
@@ -554,6 +565,10 @@ def game():
     global n
     global click
     global run
+    global vol
+    pygame.mixer.music.set_volume(vol)
+    pygame.mixer.music.load("OutThere.ogg")
+    pygame.mixer.music.play(-1)
     while run:
         clock().tick(60)
         click = False
@@ -585,6 +600,7 @@ def game():
                         enem.hitbox[2]:
                     if bullet.y - bullet.radius < enem.hitbox[1] + enem.hitbox[3] and bullet.y + bullet.radius > \
                             enem.hitbox[1]:
+                        hurt.play()
                         enem.hit()
                         if bullet in bullets1:
                             bullets1.pop(bullets1.index(bullet))
@@ -663,6 +679,8 @@ def menu():
     global run
     global list_score
     global nick
+    pygame.mixer.music.load("menumus.ogg")
+    pygame.mixer.music.play(-1)
     active = False
     bscore = open("bestscore")
     bestscore = {}
