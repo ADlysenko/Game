@@ -19,8 +19,13 @@ blow = [pygame.image.load("blow1.png"), pygame.image.load("blow2.png"), pygame.i
         pygame.image.load("blow4.png"), pygame.image.load("blow5.png"), pygame.image.load("blow6.png")]
 blowboss = [pygame.image.load("blowboss.png"), pygame.image.load("blowboss2.png"), pygame.image.load("blowboss3.png"),
         pygame.image.load("blowboss4.png"), pygame.image.load("blowboss5.png"), pygame.image.load("blowboss6.png"),pygame.image.load("blowboss7.png")]
+gif = pygame.image.load("mainmenu1.png")
 box = [pygame.image.load("box.png "), pygame.image.load("box2.png"), pygame.image.load("box3.png"),
        pygame.image.load("box4.png")]
+mainmenu = pygame.image.load("mainmenu2.png")
+startgame1 = pygame.image.load("starttt.png")
+achiev = pygame.image.load("achiev.png")
+quit = pygame.image.load("quit.png")
 pause1 = pygame.image.load("pause2.png")
 pausebutton = pygame.image.load("pausebutton.png")
 menubut = pygame.image.load("menubut.png")
@@ -488,7 +493,7 @@ def pause():
                 paused = False
         elif button_exit.collidepoint((mousex, mousey)):
             if click:
-                pass
+                menu()
         pygame.display.update()
         clock().tick(60)
 
@@ -528,7 +533,7 @@ def deadplayer():
                 game()
         elif button_exit.collidepoint((mousex, mousey)):
             if click:
-                pass
+                menu()
         pygame.display.update()
         clock().tick(60)
 
@@ -646,6 +651,63 @@ def game():
         if run:
             drawWindow()
 
+def menu():
+    global score
+    global kill
+    global enemyspot
+    global click
+    global z
+    global run
+    while run:
+        clock().tick(60)
+        mousex, mousey = pygame.mouse.get_pos()
 
-game()
+        button_1 = pygame.draw.rect(win, (255, 0, 0), (50, 120, 99, 36))
+        button_2 = pygame.draw.rect(win, (255, 0, 0), (50, 200, 48, 36))
+        rel_z = z % bg.get_rect().height
+        # win.blit(bg, (0, rel_z - bg.get_rect().height))
+        # if rel_z < 600:
+        #     win.blit(bg, (0, rel_z))
+        # z += 2
+        win.blit(gif, (0, 0))
+        # if len(enemyspot) < 5:
+        #     r3 = random.randrange(100, 200, 20)
+        #     enemyspot.append(enemy(r3, -200, 40, 40, 450))
+        # for enem in enemyspot:
+        #     enem.draw(win)
+        win.blit(mainmenu, (50, 50))
+        win.blit(startgame1, (50, 120))
+        win.blit(achiev, (50, 160))
+        win.blit(quit, (50, 200))
+        if button_1.collidepoint((mousex, mousey)):
+            if click:
+                score = 0
+                kill = 0
+                enemyspot.clear()
+                bullets1.clear()
+                bullets2.clear()
+                boxspot.clear()
+                shield.clear()
+                plane.health = 100
+                plane.x = 180
+                plane.y = 650
+                game()
+        if button_2.collidepoint((mousex, mousey)):
+            if click:
+                run = False
+                pass
+        click = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == KEYDOWN:
+                if event.type == K_ESCAPE:
+                    pygame.quit()
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+        if run:
+            pygame.display.update()
+
+menu()
 pygame.quit()
