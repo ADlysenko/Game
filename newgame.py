@@ -454,7 +454,12 @@ def drawWindow():
         win.blit(text, (plane.hitbox[0] - 14, plane.hitbox[1] - 25))
 
     text = font.render("Score: " + str(int(score)), 1, (255, 255, 255))
-    win.blit(text, (315, 5))
+    if score < 10:
+        win.blit(text, (337, 5))
+    elif score < 100:
+        win.blit(text, (329, 5))
+    elif score < 1000:
+        win.blit(text, (320, 5))
     text = font.render("Kills: " + str(int(kill)), 1, (255, 255, 255))
     win.blit(text, (5, 5))
     win.blit(pause1, (180, 5))
