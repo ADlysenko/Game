@@ -13,41 +13,36 @@ fly = pygame.image.load("player.png")
 flyr = pygame.image.load("playerr.png")
 flyl = pygame.image.load("playerl.png")
 ene = pygame.image.load("enemy.png")
-boss1 = [pygame.image.load("boss.png"),pygame.image.load("boss2.png"),pygame.image.load("boss3.png")]
-boss2 = [pygame.image.load("bossrot.png"),pygame.image.load("bossrot2.png"),pygame.image.load("bossrot3.png")]
+boss1 = [pygame.image.load("boss.png"), pygame.image.load("boss2.png"), pygame.image.load("boss3.png")]
+boss2 = [pygame.image.load("bossrot.png"), pygame.image.load("bossrot2.png"), pygame.image.load("bossrot3.png")]
 blow = [pygame.image.load("blow1.png"), pygame.image.load("blow2.png"), pygame.image.load("blow3.png"),
         pygame.image.load("blow4.png"), pygame.image.load("blow5.png"), pygame.image.load("blow6.png")]
 blowboss = [pygame.image.load("blowboss.png"), pygame.image.load("blowboss2.png"), pygame.image.load("blowboss3.png"),
-        pygame.image.load("blowboss4.png"), pygame.image.load("blowboss5.png"), pygame.image.load("blowboss6.png"),pygame.image.load("blowboss7.png")]
+            pygame.image.load("blowboss4.png"), pygame.image.load("blowboss5.png"), pygame.image.load("blowboss6.png"),
+            pygame.image.load("blowboss7.png")]
 gif = pygame.image.load("mainmenu1.png")
 box = [pygame.image.load("box.png "), pygame.image.load("box2.png"), pygame.image.load("box3.png"),
        pygame.image.load("box4.png")]
 mainmenu = pygame.image.load("mainmenu2.png")
 startgame1 = pygame.image.load("starttt.png")
 achiev = pygame.image.load("achiev.png")
-quit = pygame.image.load("quit.png")
+quit1 = pygame.image.load("quit.png")
 pause1 = pygame.image.load("pause2.png")
 pausebutton = pygame.image.load("pausebutton.png")
 menubut = pygame.image.load("menubut.png")
 resumebut = pygame.image.load("resumebut.png")
+ok = pygame.image.load("ok.png")
 clock = pygame.time.Clock
 
-count = z = 0
-a = 0
-score, kill = 0, 0
+count = a = z = score = countdamage = countbox = kill = n = timeblow = i2 = iboss = i = 0
+vol = 0.5
 left = False
 right = False
-timeblow = 0
 click = False
 run = True
-stopemot = False
-i = 0
-iboss = 0
-i2 = 0
-n = 0
-yach = 700
-countbox = 0
-countdamage = 0
+plushealth = False
+pygame.mixer.music.set_volume(vol)
+nick = "Player"
 
 
 class shoot():
@@ -97,7 +92,8 @@ class box1():
     def touch(self):
         global countbox
         global countdamage
-        print("YEAH")
+        global plushealth
+        global hel
         if self.n == 0:
             for enem in enemyspot:
                 enem.health -= enem.health
@@ -111,10 +107,16 @@ class box1():
                 plane.damageout += 5
                 countdamage = 0
         if self.n == 3:
+            plushealth = True
             if plane.health < 70:
-                plane.health += 30
+                hel = plane.health
             else:
-                plane.health += (100 - plane.health)
+                hel = 70
+            # if plane.health < 70:
+            #     if plane.health < plane.health + 30:
+            #         plane.health += 1
+            # else:
+            #     plane.health += (100 - plane.health)
 
 
 class player():
@@ -134,6 +136,8 @@ class player():
     def draw(self, win):
         global countbox
         global countdamage
+        global name
+        global score
         for shi in shield:
             if shi.exist == True:
                 if countbox < 300:
@@ -161,10 +165,11 @@ class player():
         self.hitbox = (self.x, self.y, self.width, self.height)
         # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
         self.count += 1
-        if self.count % 20 == 0:
+        if self.count == 20:
             bullets1.append(
                 shoot((round(self.x + self.width // 2)), round((self.y + self.height // 2) - 25), 3,
                       (0, 255, 0), 20))
+
             self.count = 0
         if countbox > 0:
             font = pygame.font.SysFont("comicsans", 15, True)
@@ -189,26 +194,15 @@ class player():
             win.blit(text, (80, 573))
 
     def hitme(self):
-        print("ohh")
         if self.health > 5:
             self.health -= self.damage
         else:
+            list_score.append((nick, round(score)))
+            file = open('bestscore', 'w')
+            for i in list_score:
+                file.write(i[0] + ' - ' + str(i[1]) + '\n')
+            file.close()
             deadplayer()
-
-        # else:
-        #     fontme = pygame.font.SysFont("comicans", 100)
-        #     text = fontme.render("YOU ARE DEAD", 1, (255, 0, 0))
-        #     win.blit(text, (250 - (text.get_width() / 2), 200))
-        #     pygame.display.update()
-        #     i = 0
-        #     while i < 3:
-        #         pygame.time.delay(10)
-        #         i += 1
-        #         for event in pygame.event.get():
-        #             if event.type == pygame.QUIT:
-        #                 i = 301
-        #                 pygame.quit()
-        print("hit")
 
 
 class enemy(object):
@@ -263,7 +257,6 @@ class enemy(object):
                     self.r1 = -200
                 else:
                     enemyspot.pop(enemyspot.index(self))
-        print(len(enemyspot))
         if self.r1 >= self.y:
             self.y += self.vel
         else:
@@ -273,6 +266,7 @@ class enemy(object):
             blows.append(bloww(self.x, self.y))
             if self in enemyspot:
                 enemyspot.pop(enemyspot.index(self))
+
 
 class boss(object):
     def __init__(self, x, y, width, height, end):
@@ -286,7 +280,7 @@ class boss(object):
         self.r1 = 148
         self.count = 0
         self.hitbox = (self.x, self.y, self.width, self.height)
-        self.health = 10
+        self.health = 500
         self.visible = True
         self.right = False
         self.left = True
@@ -298,10 +292,10 @@ class boss(object):
             if self.count % 9 == 0:
                 if self.left:
                     bullets2.append(
-                        shoot(self.x+ 64, self.y + 55, 3,
+                        shoot(self.x + 64, self.y + 55, 3,
                               (255, 0, 0), -5))
                     bullets2.append(
-                        shoot(self.x+ 81, self.y + 55, 3,
+                        shoot(self.x + 81, self.y + 55, 3,
                               (255, 0, 0), -5))
                     if self.health < 250:
                         bullets2.append(
@@ -327,13 +321,13 @@ class boss(object):
                                   (255, 0, 0), -5))
                     self.count = 0
             if self.left:
-                win.blit(boss1[self.count//3], (self.x, self.y))
+                win.blit(boss1[self.count // 3], (self.x, self.y))
             elif self.right:
-                win.blit(boss2[self.count//3], (self.x, self.y))
+                win.blit(boss2[self.count // 3], (self.x, self.y))
             self.hitbox = (self.x, self.y, self.width, self.height)
             # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
-            pygame.draw.rect(win, (65,105,225), (self.hitbox[0], self.hitbox[1] - 12, (self.health // 2.5) - 2, 10))
-            pygame.draw.rect(win, (123, 104, 238), (self.hitbox[0], self.hitbox[1] - 12, 198, 10),1)
+            pygame.draw.rect(win, (65, 105, 225), (self.hitbox[0], self.hitbox[1] - 12, (self.health // 2.5) - 2, 10))
+            pygame.draw.rect(win, (123, 104, 238), (self.hitbox[0], self.hitbox[1] - 12, 198, 10), 1)
 
     def hit(self):
         if plane.damageout <= self.health:
@@ -343,8 +337,6 @@ class boss(object):
 
     def move(self):
         global kill
-        global stopemot
-        global yach
         if self.r == self.x:
             self.r = random.randrange(-70, 332, self.vel)
         if self.r >= self.x:
@@ -365,6 +357,7 @@ class boss(object):
             blowbosss.append(blowwboss(self.x, self.y))
             bossspot.pop(bossspot.index(self))
 
+
 class bloww():
     def __init__(self, x, y):
         self.x = x
@@ -376,6 +369,7 @@ class bloww():
 
     def move(self):
         self.y += 3
+
 
 class blowwboss():
     def __init__(self, x, y):
@@ -396,6 +390,8 @@ def drawWindow():
     global i
     global click
     global iboss
+    global plushealth
+    global hel
     rel_z = z % bg.get_rect().height
     win.blit(bg, (0, rel_z - bg.get_rect().height))
     if rel_z < 600:
@@ -437,10 +433,14 @@ def drawWindow():
                 shi.draw(win)
         if shi.exist == False:
             shield.pop(shield.index(shi))
+    if plushealth == True:
+        if plane.health < hel + 30:
+            plane.health += 1
+        else:
+            plushealth = False
     if countdamage < 40 and countdamage != 0:
         text = font.render(("+damage"), 1, (255, 255, 255))
-        win.blit(text, (plane.hitbox[0] - 14, plane.hitbox[1] + 55))
-
+        win.blit(text, (plane.hitbox[0] - 14, plane.hitbox[1] - 25))
 
     text = font.render("Score: " + str(int(score)), 1, (255, 255, 255))
     win.blit(text, (315, 5))
@@ -452,7 +452,6 @@ def drawWindow():
 
 
 plane = player(180, 330, 38, 38)
-achievment = []
 enemyspot = []
 bossspot = []
 blowbosss = []
@@ -472,11 +471,11 @@ def pause():
     button_exit = pygame.draw.rect(win, (255, 0, 0), (140, 290, 120, 40))
     button_resume = pygame.draw.rect(win, (255, 0, 0), (140, 240, 120, 40))
     win.blit(pausebutton, (100, 210))
-    win.blit(resumebut, (140, 240))
-    font = pygame.font.SysFont("comicsans", 20, True)
+    win.blit(resumebut, (140, 255))
+    font = pygame.font.SysFont("Courier New", 25, True)
     text = font.render(("PAUSE"), 1, (255, 255, 255))
-    win.blit(text, (175, 220))
-    win.blit(menubut, (140, 290))
+    win.blit(text, (163, 220))
+    win.blit(menubut, (140, 300))
     while paused:
         click = False
         # button_e = pygame.draw.rect(win, (255, 0, 0), (100, 210, 200, 150))
@@ -497,15 +496,21 @@ def pause():
         pygame.display.update()
         clock().tick(60)
 
+
 def deadplayer():
     global click
     global kill
     global score
     global run
     paused = True
+    button_exit = pygame.draw.rect(win, (255, 0, 0), (140, 300, 120, 40))
+    button_resume = pygame.draw.rect(win, (255, 0, 0), (140, 255, 120, 40))
     win.blit(pausebutton, (100, 210))
-    button_resume = pygame.draw.rect(win, (255, 0, 0), (140, 240, 120, 40))
-    button_exit = pygame.draw.rect(win, (255, 0, 0), (140, 290, 120, 40))
+    win.blit(tryagain, (140, 255))
+    font = pygame.font.SysFont("Courier New", 25, True)
+    text = font.render(("YOU ARE DEAD"), 1, (255, 0, 0))
+    win.blit(text, (112, 220))
+    win.blit(menubut, (140, 300))
 
     while paused:
         click = False
@@ -527,6 +532,9 @@ def deadplayer():
                 bullets2.clear()
                 boxspot.clear()
                 shield.clear()
+                bossspot.clear()
+                blowbosss.clear()
+                blows.clear()
                 plane.health = 100
                 plane.x = 180
                 plane.y = 650
@@ -551,22 +559,22 @@ def game():
         click = False
         if plane.y > 510 and score < 5:
             plane.y -= 2 * plane.vel
-        if score > 1000:
+        if score > 10:
             if len(enemyspot) < 5:
                 r3 = random.randrange(100, 200, 20)
                 enemyspot.append(enemy(r3, -200, 40, 40, 450))
-        if score > 5 and score < 10:
+        if score > 150 and score < 155:
             if len(bossspot) == 0:
                 bossspot.append(boss(-200, 150, 198, 68, 450))
         if score > 10:
-            ran = random.randrange(0, 1000, 20)  # 7000
+            ran = random.randrange(0, 7000, 20)
             if ran == 20:
                 r4 = random.randrange(0, 400, 20)
                 r5 = random.randrange(-100, -200, -20)
                 boxspot.append(box1(r4, r5, 24, 24))
                 for box in boxspot:
                     if box.n == None:
-                        box.n = random.randrange(0, 4, 1)  # 0,2,1
+                        box.n = random.randrange(0, 4, 1)
         for bullet in bullets1:
             if bullet.y < 600 and bullet.y > 0:
                 bullet.y -= bullet.vel
@@ -589,13 +597,6 @@ def game():
                         bos.hit()
                         if bullet in bullets1:
                             bullets1.pop(bullets1.index(bullet))
-
-                        # i = 0
-                        # while i < 100:
-                        #     i+=1
-                        #     fontme = pygame.font.SysFont("comicans", 100)
-                        #     text = fontme.render("200", 1, (255, 0, 0))
-                        #     win.blit(text, (250 - (text.get_width() / 2), 200))
         for boxs in boxspot:
             if boxs.y < 600:
                 boxs.y += boxs.vel
@@ -616,7 +617,8 @@ def game():
                 if bullet.y - bullet.radius < plane.hitbox[1] + plane.hitbox[3] and bullet.y + bullet.radius > \
                         plane.hitbox[1]:
                     plane.hitme()
-                    bullets2.pop(bullets2.index(bullet))
+                    if bullet in bullets2:
+                        bullets2.pop(bullets2.index(bullet))
 
         mousex, mousey = pygame.mouse.get_pos()
         keys = pygame.key.get_pressed()
@@ -651,6 +653,7 @@ def game():
         if run:
             drawWindow()
 
+
 def menu():
     global score
     global kill
@@ -658,27 +661,38 @@ def menu():
     global click
     global z
     global run
+    global list_score
+    global nick
+    active = False
+    bscore = open("bestscore")
+    bestscore = {}
+    for line in bscore:
+        name, score1 = line.split(" - ")
+        bestscore[name] = int(score1)
+    bscore.close()
+    list_score = list(bestscore.items())
+    list_score.sort(key=lambda i: i[1], reverse=True)
     while run:
         clock().tick(60)
         mousex, mousey = pygame.mouse.get_pos()
-
-        button_1 = pygame.draw.rect(win, (255, 0, 0), (50, 120, 99, 36))
-        button_2 = pygame.draw.rect(win, (255, 0, 0), (50, 200, 48, 36))
-        rel_z = z % bg.get_rect().height
-        # win.blit(bg, (0, rel_z - bg.get_rect().height))
-        # if rel_z < 600:
-        #     win.blit(bg, (0, rel_z))
-        # z += 2
+        button_1 = pygame.draw.rect(win, (255, 0, 0), (50, 120, 126, 36))
+        button_2 = pygame.draw.rect(win, (255, 0, 0), (50, 200, 126, 36))
+        button_3 = pygame.draw.rect(win, (0, 191, 255), (50, 160, 126, 36), 1)
+        button_ok = pygame.draw.rect(win, (0, 191, 255), (180, 165, 25, 25), 1)
         win.blit(gif, (0, 0))
-        # if len(enemyspot) < 5:
-        #     r3 = random.randrange(100, 200, 20)
-        #     enemyspot.append(enemy(r3, -200, 40, 40, 450))
-        # for enem in enemyspot:
-        #     enem.draw(win)
-        win.blit(mainmenu, (50, 50))
+        font = pygame.font.SysFont("Courier New", 20, True)
+        win.blit(pausebutton, (100, 400))
+        text = font.render((list_score[0][0] + " : " + str(list_score[0][1])), 1, (255, 255, 255))
+        text1 = font.render((list_score[1][0] + " : " + str(list_score[1][1])), 1, (255, 255, 255))
+        text2 = font.render((list_score[2][0] + " : " + str(list_score[2][1])), 1, (255, 255, 255))
+        best_score = font.render(("Best score:"), 1, (0, 191, 255))
+        win.blit(text, ((200 - (text.get_width() // 2)), 440))
+        win.blit(text1, ((200 - (text1.get_width() // 2)), 470))
+        win.blit(text2, ((200 - (text2.get_width() // 2)), 500))
+        win.blit(best_score, (135, 410))
+        win.blit(mainmenu, (42, 50))
         win.blit(startgame1, (50, 120))
-        win.blit(achiev, (50, 160))
-        win.blit(quit, (50, 200))
+        win.blit(quit1, (50, 200))
         if button_1.collidepoint((mousex, mousey)):
             if click:
                 score = 0
@@ -692,10 +706,6 @@ def menu():
                 plane.x = 180
                 plane.y = 650
                 game()
-        if button_2.collidepoint((mousex, mousey)):
-            if click:
-                run = False
-                pass
         click = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -706,8 +716,46 @@ def menu():
             if event.type == MOUSEBUTTONDOWN:
                 if event.button == 1:
                     click = True
+                if button_1.collidepoint((mousex, mousey)):
+                    score = 0
+                    kill = 0
+                    enemyspot.clear()
+                    bullets1.clear()
+                    bullets2.clear()
+                    boxspot.clear()
+                    shield.clear()
+                    plane.health = 100
+                    plane.x = 180
+                    plane.y = 650
+                    game()
+                if button_2.collidepoint((mousex, mousey)):
+                    run = False
+                if button_3.collidepoint((mousex, mousey)):
+                    active = True
+                if button_ok.collidepoint((mousex, mousey)):
+                    active = False
+                    break
+            if event.type == pygame.KEYDOWN:
+                if active:
+                    if event.key == pygame.K_RETURN:
+                        active = False
+                        break
+                    if event.key == pygame.K_BACKSPACE:
+                        nick = nick[:-1]
+                    else:
+                        if len(nick) < 10:
+                            nick += event.unicode
+        if active == False:
+            win.blit(achiev, (50, 160))
+        else:
+            box = pygame.font.SysFont("Verdana", 16, True).render(nick, True, (255, 255, 255))
+            win.blit(box, (60, 164))
+            button_3 = pygame.draw.rect(win, (0, 191, 255), (50, 160, 126, 32), 1)
+            win.blit(ok, (180, 162))
+            button_ok = pygame.draw.rect(win, (0, 191, 255), (180, 163, 25, 25), 1)
         if run:
             pygame.display.update()
+
 
 menu()
 pygame.quit()
