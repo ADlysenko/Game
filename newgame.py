@@ -6,7 +6,7 @@ pygame.init()
 win = pygame.display.set_mode((400, 600))  # 600 800
 font = pygame.font.SysFont("comicsans", 20, True)
 
-pygame.display.set_caption("simple game")
+pygame.display.set_caption("FarGalaxy")
 
 bg = pygame.image.load("bg2.png")
 fly = pygame.image.load("player.png")
@@ -50,6 +50,7 @@ run = True
 plushealth = False
 pygame.mixer.music.set_volume(vol)
 nick = "Player"
+
 
 class shoot():
     def __init__(self, x, y, radius, color, vel):
@@ -148,7 +149,7 @@ class player():
         global name
         global score
         for shi in shield:
-            if shi.exist == True:
+            if shi.exist:
                 if countbox < 300:
                     countbox += 1
                 else:
@@ -195,12 +196,12 @@ class player():
             win.blit(fly, (self.x, self.y))
         pygame.draw.rect(win, (0, 191, 255), (126, 575, self.health * 1.52, 15))
         pygame.draw.rect(win, (123, 104, 238), (126, 575, 152, 15), 2)
-        font = pygame.font.SysFont("Verdana", 15, True)
+        font1 = pygame.font.SysFont("Verdana", 15, True)
         if self.health == 100:
-            text = font.render((str(self.health) + "%"), 1, (255, 255, 255))
+            text = font1.render((str(self.health) + "%"), 1, (255, 255, 255))
             win.blit(text, (70, 573))
         else:
-            text = font.render((str(self.health) + "%"), 1, (255, 255, 255))
+            text = font1.render((str(self.health) + "%"), 1, (255, 255, 255))
             win.blit(text, (80, 573))
 
     def hitme(self):
@@ -209,13 +210,13 @@ class player():
         else:
             list_score.append((nick, round(score)))
             file = open('bestscore', 'w')
-            for i in list_score:
-                file.write(i[0] + ' - ' + str(i[1]) + '\n')
+            for ii in list_score:
+                file.write(ii[0] + ' - ' + str(ii[1]) + '\n')
             file.close()
             deadplayer()
 
 
-class enemy(object):
+class enemy():
     def __init__(self, x, y, width, height, end):
         self.x = x
         self.y = y
@@ -444,11 +445,11 @@ def drawWindow():
                 shi.draw(win)
         if shi.exist == False:
             shield.pop(shield.index(shi))
-    if plushealth == True:
-            if plane.health < hel + 30:
-                plane.health += 1
-            else:
-                plushealth = False
+    if plushealth:
+        if plane.health < hel + 30:
+            plane.health += 1
+        else:
+            plushealth = False
     if countdamage < 40 and countdamage != 0:
         text = font.render(("+damage"), 1, (255, 255, 255))
         win.blit(text, (plane.hitbox[0] - 14, plane.hitbox[1] - 25))
@@ -488,8 +489,8 @@ def pause():
     button_resume = pygame.draw.rect(win, (255, 0, 0), (140, 240, 120, 40))
     win.blit(pausebutton, (100, 210))
     win.blit(resumebut, (140, 255))
-    font = pygame.font.SysFont("Courier New", 25, True)
-    text = font.render(("PAUSE"), 1, (255, 255, 255))
+    font2 = pygame.font.SysFont("Courier New", 25, True)
+    text = font2.render(("PAUSE"), 1, (255, 255, 255))
     win.blit(text, (163, 220))
     win.blit(menubut, (140, 300))
     while paused:
@@ -523,8 +524,8 @@ def deadplayer():
     button_resume = pygame.draw.rect(win, (255, 0, 0), (140, 255, 120, 40))
     win.blit(pausebutton, (100, 210))
     win.blit(tryagain, (140, 255))
-    font = pygame.font.SysFont("Courier New", 25, True)
-    text = font.render(("YOU ARE DEAD"), 1, (255, 0, 0))
+    font3 = pygame.font.SysFont("Courier New", 25, True)
+    text = font3.render(("YOU ARE DEAD"), 1, (255, 0, 0))
     win.blit(text, (112, 220))
     win.blit(menubut, (140, 300))
 
@@ -703,12 +704,12 @@ def menu():
         button_3 = pygame.draw.rect(win, (0, 191, 255), (50, 160, 126, 36), 1)
         button_ok = pygame.draw.rect(win, (0, 191, 255), (180, 165, 25, 25), 1)
         win.blit(gif, (0, 0))
-        font = pygame.font.SysFont("Courier New", 20, True)
+        font4 = pygame.font.SysFont("Courier New", 20, True)
         win.blit(pausebutton, (100, 400))
-        text = font.render((list_score[0][0] + " : " + str(list_score[0][1])), 1, (255, 255, 255))
-        text1 = font.render((list_score[1][0] + " : " + str(list_score[1][1])), 1, (255, 255, 255))
-        text2 = font.render((list_score[2][0] + " : " + str(list_score[2][1])), 1, (255, 255, 255))
-        best_score = font.render(("Best score:"), 1, (0, 191, 255))
+        text = font4.render((list_score[0][0] + " : " + str(list_score[0][1])), 1, (255, 255, 255))
+        text1 = font4.render((list_score[1][0] + " : " + str(list_score[1][1])), 1, (255, 255, 255))
+        text2 = font4.render((list_score[2][0] + " : " + str(list_score[2][1])), 1, (255, 255, 255))
+        best_score = font4.render(("Best score:"), 1, (0, 191, 255))
         win.blit(text, ((200 - (text.get_width() // 2)), 440))
         win.blit(text1, ((200 - (text1.get_width() // 2)), 470))
         win.blit(text2, ((200 - (text2.get_width() // 2)), 500))
@@ -771,8 +772,8 @@ def menu():
         if active == False:
             win.blit(achiev, (50, 160))
         else:
-            box = pygame.font.SysFont("Verdana", 16, True).render(nick, True, (255, 255, 255))
-            win.blit(box, (60, 164))
+            box2 = pygame.font.SysFont("Verdana", 16, True).render(nick, True, (255, 255, 255))
+            win.blit(box2, (60, 164))
             button_3 = pygame.draw.rect(win, (0, 191, 255), (50, 160, 126, 32), 1)
             win.blit(ok, (180, 162))
             button_ok = pygame.draw.rect(win, (0, 191, 255), (180, 163, 25, 25), 1)
